@@ -3,14 +3,25 @@
 ## interessante links
 
 * app: https://www.unitree.com/app/go1/  https://play.google.com/store/apps/details?id=com.unitree.doggo2&hl=en_US  
-* 
 
 ## installatie volgen via de git van de cameraSDK van Unitree GO 1
 
 link: https://github.com/unitreerobotics/UnitreecameraSDK
 
+**Alles op de virtuele Linux machine!**
+
+Eerst de git van de unitree binnenhalen
+
 ```
-/home/brinio/.local/lib/python3.10/site-packages/cv2/__init__.py
+$ git clone git@github.com:unitreerobotics/UnitreecameraSDK.git
+```
+
+Daarna builden door deze commands:
+
+```
+$ mkdir build && cd build;
+$ cmake ..;
+$ make;
 ```
 
 Na de readme.md van de cameraSDK te volgen krijg ik deze error bij cmake ..
@@ -57,32 +68,13 @@ sudo apt-get install libglew-dev libglfw3-dev libglm-dev
 //sudo apt-get install libao-dev libmpg123-dev
 ```
 
-## installatie volgen via de git voor de cameraSDK ngmor
+Nu is de camera SDK geïnstalleerd, je kan checken of alles goed is geïnstalleerd door een example uit te voeren
 
-link: https://github.com/ngmor/unitree_camera
-
-Colcon build werkt niet, dus installeren met:
+Als je opnieuw wil builden, altijd eerst de build folder verwijderen en daarna opnieuw te builden
 
 ```
-pip install -U colcon-common-extensions
-```
-
-Daarna deze error:
-
-```
-CMake Error at CMakeLists.txt:14 (find_package):
-  By not providing "Findament_cmake.cmake" in CMAKE_MODULE_PATH this project
-  has asked CMake to find a package configuration file provided by
-  "ament_cmake", but CMake did not find one.
-
-  Could not find a package configuration file provided by "ament_cmake" with
-  any of the following names:
-
-    ament_cmakeConfig.cmake
-    ament_cmake-config.cmake
-
-  Add the installation prefix of "ament_cmake" to CMAKE_PREFIX_PATH or set
-  "ament_cmake_DIR" to a directory containing one of the above files.  If
-  "ament_cmake" provides a separate development package or SDK, be sure it
-  has been installed.
+$ rm -rf ../build/;
+$ mkdir build && cd build;
+$ cmake ..;
+$ make;
 ```
