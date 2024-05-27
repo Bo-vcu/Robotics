@@ -10,6 +10,12 @@ link: https://github.com/unitreerobotics/UnitreecameraSDK
 
 **Alles op de virtuele Linux machine!**
 
+Voor de shell scripts uit te voeren, eerst het script op de juiste plaats kopiëren, daarna de permission aanpassen:
+
+```
+chmod +x cameraSDK.sh
+```
+
 Eerst de git van de unitree binnenhalen
 
 ```
