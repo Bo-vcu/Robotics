@@ -44,20 +44,17 @@ def get_feed(*cameras, model = YOLO('yolov8n.pt')):
         camera.release()
     cv2.destroyAllWindows()
 
-def get_image_from_unitree():
+def get_image_from_unitree(index_camera = 1):
     IpLastSegment = "123"
-    cam = 1
-    if len(sys.argv) >= 2:
-        cam = int(sys.argv[1])
     udpstrPrevData = "udpsrc address=192.168.123." + IpLastSegment + " port="
     udpPORT = [9201, 9202, 9203, 9204, 9205]
     udpstrBehindData = " ! application/x-rtp,media=video,encoding-name=H264 ! rtph264depay ! h264parse ! avdec_h264 ! videoconvert ! appsink"
-    udpSendIntegratedPipe = udpstrPrevData + str(udpPORT[cam - 1]) + udpstrBehindData
-    print("udpSendIntegratedPipe:", udpSendIntegratedPipe)
-    cap3 = cv2.VideoCapture( udpSendIntegratedPipe ,cv2.CAP_GSTREAMER)
-    cap3.set(cv2.CAP_PROP_FRAME_WIDTH, 800)
-    cap3.set(cv2.CAP_PROP_FRAME_HEIGHT, 600)
-    return cap3
+    udpSendIntegratedPipe = udpstrPrevData + str(udpPORT[index_camera - 1]) + udpstrBehindData
+    # print("udpSendIntegratedPipe:", udpSendIntegratedPipe)
+    cap = cv2.VideoCapture( udpSendIntegratedPipe ,cv2.CAP_GSTREAMER)
+    cap.set(cv2.CAP_PROP_FRAME_WIDTH, 800)
+    cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 600)
+    return cap
 
 
 
@@ -72,6 +69,6 @@ cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 600)
 
 get_feed(cap)
 # get_feed(cap, cap2)
-# get_feed(get_image_from_unitree())
+# get_feed((get_image_from_unitree(1), get_image_from_unitree(2), get_image_from_unitree(3)))
 
    
