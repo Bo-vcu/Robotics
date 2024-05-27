@@ -36,6 +36,7 @@ def get_feed(*cameras, model = YOLO('yolov8n.pt')):
                                     , org, font, fontScale, color, thickness)
             camera_images.append(img)
             feed = numpy.concatenate(camera_images, axis=0)
+            #hieronder kan feed veranderd worden naar img om output in aparte vensters te tonen
             cv2.imshow('feed', feed)
         if cv2.waitKey(10) & 0xFF == 27:
             break
@@ -70,7 +71,7 @@ cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 600)
 
 
 get_feed(cap)
-# get_feed(cap2)
+# get_feed(cap, cap2)
 # get_feed(get_image_from_unitree())
 
    
