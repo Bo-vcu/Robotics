@@ -5,12 +5,14 @@ from ultralytics import YOLO
 import math 
 
 def get_feed(*cameras, model = YOLO('yolov8n.pt')):
-    classNames = model.names    
+    classNames = model.names   
+    out = cv2.VideoWriter('output.avi', cv2.VideoWriter_fourcc(*'MJPG'), 10, (1280, 720))
     while True:
         camera_images = []
+        img = None
         for camera in cameras:
-            
             success, img = camera.read()
+            out.write(img)
             results = model.predict(img, stream=True, verbose=False)
         
             for r in results:
@@ -35,14 +37,19 @@ def get_feed(*cameras, model = YOLO('yolov8n.pt')):
                                     classNames[cls] + " " + str(confidence)
                                     , org, font, fontScale, color, thickness)
             camera_images.append(img)
+            
+             
         feed = numpy.concatenate(camera_images, axis=1)
-            #hieronder kan feed veranderd worden naar img om output in aparte vensters te tonen
+        
+        #hieronder kan feed veranderd worden naar img om output in aparte vensters te tonen
         cv2.imshow('feed', feed)
         if cv2.waitKey(10) & 0xFF == 27:
             break
+    out.release()
     for camera in cameras:
         camera.release()
     cv2.destroyAllWindows()
+   
 
 def get_image_from_unitree(index_camera = 1):
     IpLastSegment = "123"
@@ -58,21 +65,23 @@ def get_image_from_unitree(index_camera = 1):
 
 
 
-cap = cv2.VideoCapture(0)
-cap.set(cv2.CAP_PROP_FRAME_WIDTH, 300)
-cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 600)
+cap = cv2.VideoCapture(0, cv2.CAP_DSHOW)
+# cap.set(cv2.CAP_PROP_FRAME_WIDTH, 300)
+# cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 300)
+cap.set(cv2.CAP_PROP_FRAME_WIDTH, 1280)
+cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 720)
 
-cap2 = cv2.VideoCapture(1)
-cap2.set(cv2.CAP_PROP_FRAME_WIDTH, 300)
-cap2.set(cv2.CAP_PROP_FRAME_HEIGHT, 600)
+# cap2 = cv2.VideoCapture(1)
+# cap2.set(cv2.CAP_PROP_FRAME_WIDTH, 300)
+# cap2.set(cv2.CAP_PROP_FRAME_HEIGHT, 600)
 
-cap3 = cv2.VideoCapture(2)
-cap3.set(cv2.CAP_PROP_FRAME_WIDTH, 300)
-cap3.set(cv2.CAP_PROP_FRAME_HEIGHT, 600)
+# cap3 = cv2.VideoCapture(2)
+# cap3.set(cv2.CAP_PROP_FRAME_WIDTH, 300)
+# cap3.set(cv2.CAP_PROP_FRAME_HEIGHT, 600)
 
 
-# get_feed(cap)
-get_feed(cap, cap2, cap3)
+get_feed(cap)
+# get_feed(cap, cap2, cap3)
 # get_feed((get_image_from_unitree(1), get_image_from_unitree(2), get_image_from_unitree(3)))
 
    
