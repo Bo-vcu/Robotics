@@ -1,3 +1,4 @@
+from itertools import count
 import sys
 import cv2
 import numpy
@@ -6,13 +7,26 @@ import math
 
 def get_feed(*cameras, model = YOLO('yolov8n.pt')):
     classNames = model.names   
-    out = cv2.VideoWriter('output.avi', cv2.VideoWriter_fourcc(*'MJPG'), 10, (1280, 720))
+    out1 = cv2.VideoWriter('output_camera_1.avi', cv2.VideoWriter_fourcc(*'MJPG'), 5, (1280, 720))
+    out2 = cv2.VideoWriter('output_camera_2.avi', cv2.VideoWriter_fourcc(*'MJPG'), 5, (1280, 720))
+    out3 = cv2.VideoWriter('output_camera_3.avi', cv2.VideoWriter_fourcc(*'MJPG'), 5, (1280, 720))
+
+    
     while True:
         camera_images = []
+        i = 1
         img = None
         for camera in cameras:
             success, img = camera.read()
-            out.write(img)
+            if i == 1:
+                # if count%(1*camera.get(cv2.CAP_PROP_FPS)) == 0:
+                    out1.write(img)
+            elif i == 2:
+                # if count%(1*camera.get(cv2.CAP_PROP_FPS)) == 0:
+                    out2.write(img)
+            elif i == 3:
+                # if count%(1*camera.get(cv2.CAP_PROP_FPS)) == 0:
+                    out3.write(img)
             results = model.predict(img, stream=True, verbose=False)
         
             for r in results:
@@ -37,15 +51,16 @@ def get_feed(*cameras, model = YOLO('yolov8n.pt')):
                                     classNames[cls] + " " + str(confidence)
                                     , org, font, fontScale, color, thickness)
             camera_images.append(img)
-            
-             
+            i += 1   
         feed = numpy.concatenate(camera_images, axis=1)
         
         #hieronder kan feed veranderd worden naar img om output in aparte vensters te tonen
         cv2.imshow('feed', feed)
         if cv2.waitKey(10) & 0xFF == 27:
             break
-    out.release()
+    out1.release()
+    out2.release()
+    out3.release()
     for camera in cameras:
         camera.release()
     cv2.destroyAllWindows()
@@ -65,22 +80,22 @@ def get_image_from_unitree(index_camera = 1):
 
 
 
-cap = cv2.VideoCapture(0, cv2.CAP_DSHOW)
+cap = cv2.VideoCapture(0)
 # cap.set(cv2.CAP_PROP_FRAME_WIDTH, 300)
 # cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 300)
 cap.set(cv2.CAP_PROP_FRAME_WIDTH, 1280)
 cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 720)
 
-# cap2 = cv2.VideoCapture(1)
-# cap2.set(cv2.CAP_PROP_FRAME_WIDTH, 300)
-# cap2.set(cv2.CAP_PROP_FRAME_HEIGHT, 600)
+cap2 = cv2.VideoCapture(1)
+cap2.set(cv2.CAP_PROP_FRAME_WIDTH, 1280)
+cap2.set(cv2.CAP_PROP_FRAME_HEIGHT, 720)
 
 # cap3 = cv2.VideoCapture(2)
-# cap3.set(cv2.CAP_PROP_FRAME_WIDTH, 300)
-# cap3.set(cv2.CAP_PROP_FRAME_HEIGHT, 600)
+# cap3.set(cv2.CAP_PROP_FRAME_WIDTH, 1280)
+# cap3.set(cv2.CAP_PROP_FRAME_HEIGHT, 720)
 
 
-get_feed(cap)
+get_feed(cap, cap2)
 # get_feed(cap, cap2, cap3)
 # get_feed((get_image_from_unitree(1), get_image_from_unitree(2), get_image_from_unitree(3)))
 
