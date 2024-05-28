@@ -29,8 +29,6 @@ netmask 255.255.255.0
 gateway 192.168.123.1
 */
 
-
-
 #include <opencv2/opencv.hpp>
 #include <iostream>
 int main(int argc,char** argv)
@@ -56,7 +54,7 @@ int main(int argc,char** argv)
         cap >> frame;
         if(frame.empty())
             break;
-        imshow("video", frame); //imread voor frames weg te schrijven
+        imshow("video", frame); //imwrite voor frames weg te schrijven
         cv::waitKey(20);
     }
     cap.release();//释放资源
