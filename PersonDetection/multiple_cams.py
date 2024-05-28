@@ -32,12 +32,12 @@ def get_feed(*cameras, model = YOLO('yolov8n.pt')):
                         thickness = 2
 
                         cv2.putText(img,
-                                    classNames[0] + " " + str(confidence)
+                                    classNames[cls] + " " + str(confidence)
                                     , org, font, fontScale, color, thickness)
             camera_images.append(img)
-            feed = numpy.concatenate(camera_images, axis=0)
+        feed = numpy.concatenate(camera_images, axis=1)
             #hieronder kan feed veranderd worden naar img om output in aparte vensters te tonen
-            cv2.imshow('feed', feed)
+        cv2.imshow('feed', feed)
         if cv2.waitKey(10) & 0xFF == 27:
             break
     for camera in cameras:
@@ -59,16 +59,20 @@ def get_image_from_unitree(index_camera = 1):
 
 
 cap = cv2.VideoCapture(0)
-cap.set(cv2.CAP_PROP_FRAME_WIDTH, 800)
+cap.set(cv2.CAP_PROP_FRAME_WIDTH, 300)
 cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 600)
 
-# cap2 = cv2.VideoCapture(1)
-# cap2.set(cv2.CAP_PROP_FRAME_WIDTH, 800)
-# cap2.set(cv2.CAP_PROP_FRAME_HEIGHT, 600)
+cap2 = cv2.VideoCapture(1)
+cap2.set(cv2.CAP_PROP_FRAME_WIDTH, 300)
+cap2.set(cv2.CAP_PROP_FRAME_HEIGHT, 600)
+
+cap3 = cv2.VideoCapture(2)
+cap3.set(cv2.CAP_PROP_FRAME_WIDTH, 300)
+cap3.set(cv2.CAP_PROP_FRAME_HEIGHT, 600)
 
 
-get_feed(cap)
-# get_feed(cap, cap2)
+# get_feed(cap)
+get_feed(cap, cap2, cap3)
 # get_feed((get_image_from_unitree(1), get_image_from_unitree(2), get_image_from_unitree(3)))
 
    
