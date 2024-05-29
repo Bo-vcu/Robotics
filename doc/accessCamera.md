@@ -30,7 +30,7 @@ ps -aux | grep live_human_pose | awk '{print $2}' | xargs kill -9
 
 Eerst voer je de put image trans uit op de nano. Put trans is onveranderd.
 
-Om daarna via get image trans de beelden van de gevraagde camera op te vragen.
+Om daarna via get image trans de beelden van de gevraagde camera op te vragen op de eigen pc.
 
 Kleine aanpassing aan de get image trans example, ook in de accessCamera folder.
 
