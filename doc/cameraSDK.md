@@ -16,7 +16,7 @@ Voor de shell scripts uit te voeren, eerst het script op de juiste plaats kopië
 chmod +x cameraSDK.sh
 ```
 
-Eerst de git van de unitree binnenhalen
+Eerst de git van de unitree binnenhalen op je eigen linux machine.
 
 ```
 $ git clone git@github.com:unitreerobotics/UnitreecameraSDK.git
@@ -74,9 +74,9 @@ sudo apt-get install libglew-dev libglfw3-dev libglm-dev
 //sudo apt-get install libao-dev libmpg123-dev
 ```
 
-Nu is de camera SDK geïnstalleerd, je kan checken of alles goed is geïnstalleerd door een example uit te voeren
+Nu is de camera SDK geïnstalleerd, je kan checken of alles goed is geïnstalleerd door een example uit te voeren.
 
-Als je opnieuw wil builden, altijd eerst de build folder verwijderen en daarna opnieuw te builden
+Als je opnieuw wil builden, altijd eerst de build folder verwijderen en daarna opnieuw te builden.
 
 ```
 $ rm -rf ../build/;

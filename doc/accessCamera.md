@@ -28,13 +28,25 @@ ps -aux | grep mqttControlNode | awk '{print $2}' | xargs kill -9
 ps -aux | grep live_human_pose | awk '{print $2}' | xargs kill -9
 ```
 
-Eerst voer je de put image trans uit op de nano. Put trans is onveranderd.
+of door:
+```
+./kill.sh
+```
 
-Om daarna via get image trans de beelden van de gevraagde camera op te vragen op de eigen pc.
+Eerst voer je de put image trans uit op de nano. Put trans is onveranderd.
 
 Kleine aanpassing aan de get image trans example, ook in de accessCamera folder.
 
+Om daarna via get image trans of gstreamer de beelden van de gevraagde camera op te vragen op de eigen pc.
+
 Als je daarna dit commando runt, dan zou je frames van de camera moeten zien:
+
+get image trans example:
 ```
 $ ./bins/example_getimagetrans 
+```
+
+of gstreamer:
+```
+gst-launch-1.0 udpsrc port=9201 ! application/x-rtp, media=video, encoding-name=H264 ! rtph264depay ! h264parse ! avdec_h264 ! videoconvert ! autovideosink
 ```
