@@ -9,7 +9,6 @@ def get_feed(*cameras, model = YOLO('yolov8n.pt')):
     # out2 = cv2.VideoWriter('output_camera_2.avi', cv2.VideoWriter_fourcc(*'MJPG'), 5, (1280, 720))
     # out3 = cv2.VideoWriter('output_camera_3.avi', cv2.VideoWriter_fourcc(*'MJPG'), 5, (1280, 720))
 
-    
     while True:
         camera_images = []
         i = 1
@@ -52,9 +51,9 @@ def get_feed(*cameras, model = YOLO('yolov8n.pt')):
         cv2.imshow('feed', feed)
         if cv2.waitKey(10) & 0xFF == 27:
             break
-    out1.release()
-    out2.release()
-    out3.release()
+    # out1.release()
+    # out2.release()
+    # out3.release()
     for camera in cameras:
         camera.release()
     cv2.destroyAllWindows()
