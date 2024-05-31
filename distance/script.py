@@ -13,10 +13,10 @@ with open("coco.names", "r") as f:
 # Define the known height of a person in meters (average height)
 KNOWN_HEIGHT = 1.7
 
-# Initialize the webcam
-cap = cv2.VideoCapture(0)
+# Initialize the video file
+cap = cv2.VideoCapture('left_camera.mp4')  # Replace 'left_camera.mp4' with the path to your video file
 
-while True:
+while cap.isOpened():
     ret, frame = cap.read()
     if not ret:
         break
@@ -76,8 +76,9 @@ while True:
     # Display the output
     cv2.imshow("Image", frame)
 
-    # Break the loop
-    if cv2.waitKey(1) & 0xFF == ord('q'):
+    # Break the loop if 'q' or 'Esc' is pressed
+    key = cv2.waitKey(1)
+    if key & 0xFF == ord('q') or key == 27:  # 27 is the 'Esc' key
         break
 
 # Release the capture and destroy windows
