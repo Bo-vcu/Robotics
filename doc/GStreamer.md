@@ -43,6 +43,19 @@ Receiving Video Data:
 The udpsrc element listens for incoming video data on UDP port 9201. This data might be sent from another ROS node or an external source.
 Processing the Video Data:
 
+
+Important: Installing Ultralytics causes the python scripts to not work anymore! it will result in following error: Traceback (most recent call last):
+
+  File "/home/gert/Documents/programming/streamer.py", line 36, in <module>
+
+    cam.demo()
+
+  File "/home/gert/Documents/programming/streamer.py", line 25, in demo
+
+    self.frame = cv2.resize(self.frame, (self.width, self.height))
+
+cv2.error: OpenCV(4.9.0) /io/opencv/modules/imgproc/src/resize.cpp:4152: error: (-215:Assertion failed) !ssize.empty() in function 'resize'
+
 The data is expected to be in RTP format with H264 encoding. The rtph264depay element extracts the H264 video stream from the RTP packets.
 The h264parse element ensures the bitstream is correctly formatted for decoding.
 The avdec_h264 element decodes the H264 video stream into raw video frames.
