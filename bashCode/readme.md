@@ -1,0 +1,1 @@
+Bash code voor de camera sdk te voorzien en toegang te krijgen tot de camera.

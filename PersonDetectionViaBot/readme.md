@@ -1,0 +1,1 @@
+Enkele c++ code voor person detection op de robot. Nog niet getest op de robot zelf.

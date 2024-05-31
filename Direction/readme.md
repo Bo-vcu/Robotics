@@ -1,0 +1,1 @@
+Scripts om motion en direction te zien op de webcam van de computer.

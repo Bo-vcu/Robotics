@@ -16,10 +16,22 @@ ssh unitree@192.168.123.13
 
 password: 123
 
-processen killen:
+processen killen door:
+```
+./kill.sh
+```
+
+of specifieke processen door:
+
 ```
 kill -9 pip code
 ```
+
+
+
+
+
+
 
 ps -aux | grep point_cloud_node | awk '{print $2}' | xargs kill -9
 
