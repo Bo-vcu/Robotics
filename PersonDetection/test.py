@@ -1,64 +1,35 @@
-from itertools import count
 import cv2
-import numpy
-# from ultralytics import YOLO
-import math 
 
-def get_feed(*cameras):
-    
-    while True:
-        camera_images = []
+class camera:
+    def __init__(self, cam_id = None, width = 640, height = 480):
+        self.width = 640
+        self.cam_id = cam_id
+        self.width = width
+        self.height = height
+    def get_img(self):
+        IpLastSegment = "123"
+        cam = self.cam_id
+        udpstrPrevData = "udpsrc address=192.168.123."+ IpLastSegment + " port="
+        udpPORT = [9201,9202,9203,9204,9205]
+        udpstrBehindData = " ! application/x-rtp,media=video,encoding-name=H264 ! rtph264depay ! h264parse ! avdec_h264 ! videoconvert ! appsink"
+        udpSendIntegratedPipe_0 = udpstrPrevData +  str(udpPORT[cam-1]) + udpstrBehindData
+        print(udpSendIntegratedPipe_0)
 
-        img = None
-        for camera in cameras:
-            success, img = camera.read()
-            img = cv2.flip(img, 0)
-            
-        
-           
-            camera_images.append(img)
-        feed = numpy.concatenate(camera_images, axis=1)
-        
-        cv2.imshow('feed', feed)
-        if cv2.waitKey(10) & 0xFF == 27:
-            break
+        self.cap = cv2.VideoCapture(udpSendIntegratedPipe_0)
 
-    for camera in cameras:
-        camera.release()
-    cv2.destroyAllWindows()
-   
+    def demo(self):
+        self.get_img()    
+        while(True):
+            self.ret, self.frame = self.cap.read()
+            self.frame = cv2.resize(self.frame, (self.width, self.height))
+            if self.cam_id == 1:
+                self.frame = cv2.flip(self.frame, -1)
+            if self.frame is not None:
+                cv2.imshow("video0", self.frame)
+            if cv2.waitKey(2) & 0xFF == ord('q'):
+                break
+        self.cap.release()
+        cv2.destroyAllWindows()
 
-def get_image_from_unitree(index_camera = 1):
-    IpLastSegment = "162"
-    udpstrPrevData = "udpsrc address=192.168.123." + IpLastSegment + " port="
-    udpPORT = [9201, 9202, 9203, 9204, 9205]
-    udpstrBehindData = " ! application/x-rtp,media=video,encoding-name=H264 ! rtph264depay ! h264parse ! avdec_h264 ! videoconvert ! appsink"
-    udpSendIntegratedPipe = udpstrPrevData + str(udpPORT[index_camera - 1]) + udpstrBehindData
-    # print("udpSendIntegratedPipe:", udpSendIntegratedPipe)
-    cap = cv2.VideoCapture( udpSendIntegratedPipe , cv2.CAP_GSTREAMER)
-    cap.set(cv2.CAP_PROP_FRAME_WIDTH, 1280)
-    cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 720)
-    return cap
-
-
-
-# cap = cv2.VideoCapture(0)
-# cap.set(cv2.CAP_PROP_FRAME_WIDTH, 1280)
-# cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 720)
-
-# cap2 = cv2.VideoCapture(1)
-# cap2.set(cv2.CAP_PROP_FRAME_WIDTH, 1280)
-# cap2.set(cv2.CAP_PROP_FRAME_HEIGHT, 720)
-
-# cap3 = cv2.VideoCapture(2)
-# cap3.set(cv2.CAP_PROP_FRAME_WIDTH, 1280)
-# cap3.set(cv2.CAP_PROP_FRAME_HEIGHT, 720)
-
-
-# get_feed(cap)
-# get_feed(cap, cap2, cap3)
-get_feed(get_image_from_unitree(1)
-        #   , get_image_from_unitree(2), get_image_from_unitree(3)
-          )
-
-   
+cam = camera(1)
+cam.demo()
