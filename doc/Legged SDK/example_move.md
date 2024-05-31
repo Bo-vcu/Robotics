@@ -124,18 +124,18 @@ if __name__ == '__main__':
 
 
 #This script makes the Unitree Go1 perform a sequence of actions:
-0 to 1000 ms: The robot forces a stand with a slight forward tilt.
-1000 to 2000 ms: The robot forces a stand with a slight backward tilt.
-2000 to 3000 ms: The robot forces a stand with a left tilt.
-3000 to 4000 ms: The robot forces a stand with a right tilt.
-4000 to 5000 ms: The robot forces a stand with a slight roll to the left.
-5000 to 6000 ms: The robot forces a stand with a slight roll to the right.
-6000 to 7000 ms: The robot lowers its body.
-7000 to 8000 ms: The robot raises its body slightly.
-8000 to 9000 ms: The robot returns to a normal body height.
-9000 to 11000 ms: The robot performs mode 5 (likely a predefined behavior, e.g., sitting).
-11000 to 13000 ms: The robot performs mode 6 (another predefined behavior).
-13000 to 14000 ms: The robot goes back to idle.
-14000 to 18000 ms: The robot walks with a trotting gait, moving forward at 0.4 m/s and turning with a yaw speed of 2 rad/s.
-18000 to 20000 ms: The robot goes idle and stops moving.
-20000 to 24000 ms: The robot walks with a walking gait, moving forward at 0.2 m/s and slightly raising its body height.
+#0 to 1000 ms: The robot forces a stand with a slight forward tilt.
+#1000 to 2000 ms: The robot forces a stand with a slight backward tilt.
+#2000 to 3000 ms: The robot forces a stand with a left tilt.
+#3000 to 4000 ms: The robot forces a stand with a right tilt.
+#4000 to 5000 ms: The robot forces a stand with a slight roll to the left.
+#5000 to 6000 ms: The robot forces a stand with a slight roll to the right.
+#6000 to 7000 ms: The robot lowers its body.
+#7000 to 8000 ms: The robot raises its body slightly.
+#8000 to 9000 ms: The robot returns to a normal body height.
+#9000 to 11000 ms: The robot performs mode 5 (likely a predefined behavior, e.g., sitting).
+#11000 to 13000 ms: The robot performs mode 6 (another predefined behavior).
+#13000 to 14000 ms: The robot goes back to idle.
+#14000 to 18000 ms: The robot walks with a trotting gait, moving forward at 0.4 m/s and turning with a yaw speed of 2 rad/s.
+#18000 to 20000 ms: The robot goes idle and stops moving.
+#20000 to 24000 ms: The robot walks with a walking gait, moving forward at 0.2 m/s and slightly raising its body height.

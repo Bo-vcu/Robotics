@@ -54,7 +54,7 @@ int main(int argc,char** argv)
         cap >> frame;
         if(frame.empty())
             break;
-        imshow("video", frame); //imwrite voor frames weg te schrijven
+        imshow("outputVideo", frame); //imwrite voor frames weg te schrijven
         cv::waitKey(20);
     }
     cap.release();//释放资源
