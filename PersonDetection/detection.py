@@ -18,9 +18,7 @@ class camera:
 
         self.width = 1280
         self.middle = int(self.width*0.5)
-
         self.cam_id = cam_id
-
         self.height = 720
 
 
@@ -28,30 +26,25 @@ class camera:
     def get_img(self):
 
         IpLastSegment = "162"
-
         cam = self.cam_id
-
         udpstrPrevData = "udpsrc address=192.168.123." + IpLastSegment + " port="
-
         udpPORT = [9201, 9202, 9203, 9204, 9205]
-
         udpstrBehindData = " ! application/x-rtp,media=video,encoding-name=H264 ! rtph264depay ! h264parse ! avdec_h264 ! videoconvert ! appsink"
-
         udpSendIntegratedPipe_0 = udpstrPrevData + str(udpPORT[cam - 1]) + udpstrBehindData
-
         print(udpSendIntegratedPipe_0)
-
-
 
         self.cap = cv2.VideoCapture(udpSendIntegratedPipe_0)
 
     def get_rotation(self, x1, x2):
         if int((x1 + (x2-x1)*0.5) - self.middle) < -100:
             print("Left")
+            return "Left"
         elif int((x1 + (x2-x1)*0.5) - self.middle) > 100:
             print("Right")
+            return "Right"
         else:
             print("Center")
+            return "Center"
             
     def get_distance(self, y1, y2):
         h = y2 - y1
@@ -60,12 +53,12 @@ class camera:
         distance = (KNOWN_HEIGHT * focal_length) / h
         return distance
     
-    def walk(self, y1, y2):
+    def get_walk(self, y1, y2):
         distance = self.get_distance(y1, y2)
         if distance < 2:
             print("Stop")
         else:
-            print("Walk")
+            print("Walk " + str(distance - 2) + "m")
 
     def demo(self):
 
@@ -105,8 +98,8 @@ class camera:
 
                         self.get_rotation(x1, x2)
                         if self.get_rotation(x1, x2) == "Center":
-                            self.walk(y1, y2)
-                            
+                            self.get_walk(y1, y2)
+
                         cv2.putText(self.frame,
 
                                     f"{classNames[cls]} C: {confidence} D: {distance:.2f}m dmid: {int((x1 + (x2-x1)*0.5) - self.middle)}",
