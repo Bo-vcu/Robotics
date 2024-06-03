@@ -6,16 +6,17 @@ class camera:
         self.cam_id = cam_id
         self.width = width
         self.height = height
+
     def get_img(self):
-        IpLastSegment = "123"
+        IpLastSegment = "162"
         cam = self.cam_id
         udpstrPrevData = "udpsrc address=192.168.123."+ IpLastSegment + " port="
         udpPORT = [9201,9202,9203,9204,9205]
         udpstrBehindData = " ! application/x-rtp,media=video,encoding-name=H264 ! rtph264depay ! h264parse ! avdec_h264 ! videoconvert ! appsink"
         udpSendIntegratedPipe_0 = udpstrPrevData +  str(udpPORT[cam-1]) + udpstrBehindData
         print(udpSendIntegratedPipe_0)
-
         self.cap = cv2.VideoCapture(udpSendIntegratedPipe_0)
+        print(self.cap.isOpened())
 
     def demo(self):
         self.get_img()    
