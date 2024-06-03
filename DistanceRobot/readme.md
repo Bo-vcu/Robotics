@@ -1,4 +1,4 @@
-Script voor afstand te meten op de robot, het werkte nog niet helemaal. De bedoeling is om deze code van script.py toe te voegen aan werkend_op_robot.py in PersonDetection folder.
+Dit script is een uitbreiding van het werkende script voor persoon herkenning op de robot.
 
 Er staan enkele files die nodig zijn om dit srcipt te runnen, deze staan op de Onedrive onder bestanden scripts -> distance: 
 
