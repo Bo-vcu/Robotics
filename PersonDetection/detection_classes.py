@@ -3,6 +3,7 @@ import os
 from ultralytics import YOLO
 import math
 import numpy as np
+import paho.mqtt.client as mqtt
 
 print(cv2.getBuildInformation())
 
@@ -18,9 +19,15 @@ class output_cmd(output):
         print(action)
 class output_mqtt(output):
     def __init__(self):
-        pass
+        self.client = mqtt.Client()
+        self.client.connect("localhost",1883,60)        
+
     def send(self, action):
-        pass
+        # client = self.connect_mqtt()
+        # client.loop_start()
+        # self.publish(client, action)
+        # client.loop_stop()
+        self.client.publish("test/topic", action)
     
 
 class model:
@@ -157,7 +164,7 @@ class algorithm:
         if distance < 3:
             return "Stop"
         else:
-            return "Walk "
+            return "Walk"
 
     def demo(self):
         i=0
@@ -176,7 +183,8 @@ class algorithm:
                     
                     org = [x1, y1]
                     distance = self.get_distance(y1, y2)
-                    self.output.send(self.get_action(x1, x2, distance))
+                    if i%30 == 0:
+                        self.output.send(self.get_action(x1, x2, distance))
 
                     cv2.putText(frame,
                                 f"D: {distance:.2f}m dmid: {int((x1 + (x2-x1)*0.5) - self.camera.middle)}",
@@ -186,11 +194,14 @@ class algorithm:
                 cv2.imshow("video0", frame)
             if cv2.waitKey(2) & 0xFF == ord('q'):
                 break
+        # self.client.disconnect()
         self.camera.release()
         cv2.destroyAllWindows()
+        
 
 cam = unitree_camera(1)
 mod = model_tensorflow()
-out = output_cmd()
+#out = output_cmd()
+out = output_mqtt()
 alg = algorithm(mod, cam, out)
 alg.demo()
