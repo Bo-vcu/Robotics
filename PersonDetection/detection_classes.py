@@ -7,35 +7,28 @@ import numpy as np
 print(cv2.getBuildInformation())
 
 class output:
-    def get_rotation_cmd(x1, x2, middle=640):
-        if int((x1 + (x2-x1)*0.5) - middle) < -100:
-            print("Left")
-            return "Left"
-        elif int((x1 + (x2-x1)*0.5) - middle) > 100:
-            print("Right")
-            return "Right"
-        else:
-            print("Center")
-            return "Center"
-            
-    def get_distance(y1, y2):
-        h = y2 - y1
-        focal_length = 615
-        KNOWN_HEIGHT = 1.8
-        distance = (KNOWN_HEIGHT * focal_length) / h
-        return distance
+    def __init__(self):
+        pass
+    def send(self, action):
+        pass
+class output_cmd(output):
+    def __init__(self):
+        pass
+    def send(self, action):
+        print(action)
+class output_mqtt(output):
+    def __init__(self):
+        pass
+    def send(self, action):
+        pass
     
-    def get_walk_cmd(y1, y2):
-        distance = output.get_distance(y1, y2)
-        if distance < 2:
-            print("Stop")
-        else:
-            print("Walk " + str(distance - 2) + "m")
 
 class model:
     def __init__(self):
         pass
     def detect_objects(self, frame):
+        pass
+    def get_results(self, frame):
         pass
 
 class model_tensorflow(model):
@@ -49,60 +42,13 @@ class model_tensorflow(model):
         self.model_tensorflow.setInput(blob)
         objects = self.model_tensorflow.forward()
         return objects
-   
-class model_ultralytics(model):
-    def __init__(self):
-        self.model_ultralytics = YOLO('yolov8n.pt')
-        self.classNames = self.model_ultralytics.names
-
-    def detect_objects(self, frame):
-        return self.model_ultralytics.predict(frame, stream=True, verbose=False)
-   
-
-class camera:
-    def __init__(self, cam_id=None, model=None):
-        self.width = 1280
-        self.middle = int(self.width*0.5)
-        self.cam_id = cam_id
-        self.height = 720
-        self.font = cv2.FONT_HERSHEY_SIMPLEX
-        self.fontScale = 0.5
-        self.color = (255, 0, 0)
-        self.thickness = 2
-        self.model = model
-        
-    def format_frame(self):
-        self.ret, self.frame = self.cap.read()
-        self.frame = cv2.resize(self.frame, (self.width, self.height))
-        self.frame = cv2.flip(self.frame, -1)
-
-    def get_img(self):
-        IpLastSegment = "162"
-        cam = self.cam_id
-        udpstrPrevData = "udpsrc address=192.168.123." + IpLastSegment + " port="
-        udpPORT = [9201, 9202, 9203, 9204, 9205]
-        udpstrBehindData = " ! application/x-rtp,media=video,encoding-name=H264 ! rtph264depay ! h264parse ! avdec_h264 ! videoconvert ! appsink"
-        udpSendIntegratedPipe_0 = udpstrPrevData + str(udpPORT[cam - 1]) + udpstrBehindData
-        print(udpSendIntegratedPipe_0)
-        self.cap = cv2.VideoCapture(udpSendIntegratedPipe_0)
-
-
-    def read_cam(self):
-        self.ret, self.frame = self.cap.read()
-        self.frame = cv2.resize(self.frame, (self.width, self.height))
-        self.frame = cv2.flip(self.frame, -1)
-        
-
-    def demo_tensorflow(self):
-        self.get_img()
-        while True:
-            self.format_frame()
-            results = self.model.detect_objects(self.frame)
-            rows, cols, _ = self.frame.shape
-            cv2.line(self.frame, (self.middle, 720), (self.middle, 0), (0, 255, 0), 3)
-
-            for i in range(results.shape[2]):
-                selected = results[0, 0, i]
+    
+    def get_results(self, frame):
+        objects = self.detect_objects(frame)
+        rows, cols, _ = frame.shape
+        results = []
+        for i in range(objects.shape[2]):
+                selected = objects[0, 0, i]
         
                 classId = int(selected[1])
                 score = float(selected[2])
@@ -113,72 +59,131 @@ class camera:
                 h = int(selected[6] * rows - y1)
                 x2 = x1 + w
                 y2 = y1 + h
-
                 if score > 0.25 and classId == 1:
+                    results.append([x1, x2, y1, y2])
+        return results
+   
+class model_ultralytics(model):
+    def __init__(self):
+        self.model_ultralytics = YOLO('yolov8n.pt')
+        self.classNames = self.model_ultralytics.names
 
-                    cv2.rectangle(self.frame, (x1, y1), (x2, y2), (0, 0, 255), 3)
-                    cv2.circle(self.frame,(int(x1 + (x2-x1)*0.5), 
-                                           int(y1 + (y2-y1)*0.5)), 5, (0,0,255), -1)
-                    
-                    org = [x1, y1]
-                    distance = output.get_distance(y1, y2)
+    def detect_objects(self, frame):
+        return self.model_ultralytics.predict(frame, stream=True, verbose=False)
+    
+    def get_results(self, frame):
+        objects = self.detect_objects(frame)
+        results = []
+        for r in objects:
+            boxes = r.boxes
+            for box in boxes:
+                x1, y1, x2, y2 = box.xyxy[0]
+                x1, y1, x2, y2 = int(x1), int(y1), int(x2), int(y2)
+                confidence = math.ceil((box.conf[0] * 100)) / 100
+                cls = int(box.cls[0])
 
-                    
-                    if output.get_rotation_cmd(x1, x2) == "Center":
-                        output.get_walk_cmd(y1, y2)
+                if confidence >= 0.3 and cls == 0:
+                    results.append([x1, x2, y1, y2])
+        return results
+   
 
-                    cv2.putText(self.frame,
-                                f"Person C: {score} D: {distance:.2f}m dmid: {int((x1 + (x2-x1)*0.5) - self.middle)}",
-                                org, self.font, self.fontScale, self.color, self.thickness)
+class camera:
+    def __init__(self, cam_id=0):
+        self.width = 1280
+        self.middle = int(self.width*0.5)
+        self.cam_id = cam_id
+        self.height = 720
+        self.font = cv2.FONT_HERSHEY_SIMPLEX
+        self.fontScale = 0.5
+        self.color = (255, 0, 0)
+        self.thickness = 2
+        self.get_img()
+        
+    def get_frame(self):
+        self.ret, self.frame = self.cap.read()
+        self.frame = cv2.resize(self.frame, (self.width, self.height))
+        self.frame = cv2.flip(self.frame, -1)
+        return self.frame
 
-            if self.frame is not None:
-                cv2.imshow("video0", self.frame)
+    def get_img(self):
+        self.cap = cv2.VideoCapture(self.cam_id)
+
+    def release(self):
+        self.cap.release()
+
+class unitree_camera(camera):
+    def __init__(self, cam_id=1):
+        super().__init__(cam_id)
+        self.width = 1280
+        self.height = 720
+        self.cam_id = cam_id
+        self.get_img()
+
+    def get_img(self):
+        IpLastSegment = "162"
+        udpstrPrevData = "udpsrc address=192.168.123." + IpLastSegment + " port="
+        udpPORT = [9201, 9202, 9203, 9204, 9205]
+        udpstrBehindData = " ! application/x-rtp,media=video,encoding-name=H264 ! rtph264depay ! h264parse ! avdec_h264 ! videoconvert ! appsink"
+        udpSendIntegratedPipe_0 = udpstrPrevData + str(udpPORT[self.cam_id - 1]) + udpstrBehindData
+        print(udpSendIntegratedPipe_0)
+        self.cap = cv2.VideoCapture(udpSendIntegratedPipe_0)
+
+class algorithm:
+    def __init__(self, model, camera, output):
+        self.model = model
+        self.camera = camera
+        self.output = output
+
+    def get_distance(self, y1, y2):
+        h = y2 - y1
+        focal_length = 615
+        KNOWN_HEIGHT = 1.8
+        distance = (KNOWN_HEIGHT * focal_length) / h
+        return distance
+    
+    def get_action(self, x1, x2, distance, middle=640):
+        if int((x1 + (x2-x1)*0.5) - middle) < -100*middle/640:
+            return "Left"
+        elif int((x1 + (x2-x1)*0.5) - middle) > 100*middle/640:
+            return "Right"
+        else:
+            return self.get_walk(distance)         
+    
+    def get_walk(self, distance):
+        if distance < 3:
+            return "Stop"
+        else:
+            return "Walk "
+
+    def demo(self):
+        while True:
+            frame = self.camera.get_frame()
+            results = self.model.get_results(frame)
+            cv2.line(frame, (self.camera.middle, 720), (self.camera.middle, 0), (0, 255, 0), 3)
+
+            for result in results:
+                x1, x2, y1, y2 = result
+                cv2.rectangle(frame, (x1, y1), (x2, y2), (0, 0, 255), 3)
+                cv2.circle(frame,(int(x1 + (x2-x1)*0.5), 
+                                        int(y1 + (y2-y1)*0.5)), 5, (0,0,255), -1)
+                
+                org = [x1, y1]
+                distance = self.get_distance(y1, y2)
+                self.output.send(self.get_action(x1, x2, distance))
+
+                cv2.putText(frame,
+                            f"D: {distance:.2f}m dmid: {int((x1 + (x2-x1)*0.5) - self.camera.middle)}",
+                            org, self.camera.font, self.camera.fontScale, self.camera.color, self.camera.thickness)
+
+            if frame is not None:
+                cv2.imshow("video0", frame)
             if cv2.waitKey(2) & 0xFF == ord('q'):
                 break
-        self.cap.release()
+        self.camera.release()
         cv2.destroyAllWindows()
 
-    # def demo_ultralytics(self):
-    #         self.get_img()
-    #         --model = YOLO('yolov8n.pt')
-    #         --classNames = model.names
-
-    #         while True:
-    #             self.format_frame()
-    #             --results = model.predict(self.frame, stream=True, verbose=False)
-    #             cv2.line(self.frame, (self.middle, 720), (self.middle, 0), (0, 255, 0), 3)
-
-    #             for r in results:
-    #                 boxes = r.boxes
-
-    #                 for box in boxes:
-    #                     x1, y1, x2, y2 = box.xyxy[0]
-    #                     x1, y1, x2, y2 = int(x1), int(y1), int(x2), int(y2)
-    #                     confidence = math.ceil((box.conf[0] * 100)) / 100
-    #                     cls = int(box.cls[0])
-
-    #                     if confidence >= 0.3 and cls == 0:
-
-    #                         cv2.rectangle(self.frame, (x1, y1), (x2, y2), (0, 0, 255), 3)
-    #                         cv2.circle(self.frame,(int(x1 + (x2-x1)*0.5), int(y1 + (y2-y1)*0.5)), 5, (0,0,255), -1)
-                            
-    #                         cls = int(box.cls[0])
-    #                         org = [x1, y1]
-    #                         distance = self.get_distance(y1, y2)
-    #                         self.get_rotation(x1, x2)
-    #                         if self.get_rotation(x1, x2) == "Center":
-    #                             self.get_walk(y1, y2)
-
-    #                         cv2.putText(self.frame,
-    #                                     f"{--classNames[cls]} C: {confidence} D: {distance:.2f}m dmid: {int((x1 + (x2-x1)*0.5) - self.middle)}",
-    #                                     org, self.font, self.fontScale, self.color, self.thickness)
-
-    #             if self.frame is not None:
-    #                 cv2.imshow("video0", self.frame)
-    #             if cv2.waitKey(2) & 0xFF == ord('q'):
-    #                 break
-    #         self.cap.release()
-    #         cv2.destroyAllWindows()
-
-cam = camera(1, model_tensorflow())
-cam.demo_tensorflow()
+cam = unitree_camera(1)
+mod = model_tensorflow()
+out = output_cmd()
+alg = algorithm(mod, cam, out)
+alg.demo()
