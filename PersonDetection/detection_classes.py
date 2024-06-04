@@ -113,9 +113,13 @@ class camera:
 
 class unitree_camera(camera):
     def __init__(self, cam_id=1):
-        super().__init__(cam_id)
         self.width = 1280
+        self.middle = int(self.width*0.5)
         self.height = 720
+        self.font = cv2.FONT_HERSHEY_SIMPLEX
+        self.fontScale = 0.5
+        self.color = (255, 0, 0)
+        self.thickness = 2
         self.cam_id = cam_id
         self.get_img()
 
@@ -126,7 +130,7 @@ class unitree_camera(camera):
         udpstrBehindData = " ! application/x-rtp,media=video,encoding-name=H264 ! rtph264depay ! h264parse ! avdec_h264 ! videoconvert ! appsink"
         udpSendIntegratedPipe_0 = udpstrPrevData + str(udpPORT[self.cam_id - 1]) + udpstrBehindData
         print(udpSendIntegratedPipe_0)
-        self.cap = cv2.VideoCapture(udpSendIntegratedPipe_0)
+        self.cap = cv2.VideoCapture(udpSendIntegratedPipe_0, cv2.CAP_GSTREAMER)
 
 class algorithm:
     def __init__(self, model, camera, output):
@@ -141,10 +145,10 @@ class algorithm:
         distance = (KNOWN_HEIGHT * focal_length) / h
         return distance
     
-    def get_action(self, x1, x2, distance, middle=640):
-        if int((x1 + (x2-x1)*0.5) - middle) < -100*middle/640:
+    def get_action(self, x1, x2, distance, center_zone = 100, middle=640):
+        if int((x1 + (x2-x1)*0.5) - middle) < -center_zone*middle/640:
             return "Left"
-        elif int((x1 + (x2-x1)*0.5) - middle) > 100*middle/640:
+        elif int((x1 + (x2-x1)*0.5) - middle) > center_zone*middle/640:
             return "Right"
         else:
             return self.get_walk(distance)         
@@ -156,25 +160,28 @@ class algorithm:
             return "Walk "
 
     def demo(self):
+        i=0
         while True:
-            frame = self.camera.get_frame()
-            results = self.model.get_results(frame)
-            cv2.line(frame, (self.camera.middle, 720), (self.camera.middle, 0), (0, 255, 0), 3)
+            if i%5 == 0:
+                frame = self.camera.get_frame()
+                results = self.model.get_results(frame)
+                cv2.line(frame, (self.camera.middle -int(100*self.camera.middle/640), 720), (self.camera.middle -int(100*self.camera.middle/640), 0), (0, 255, 0), 3)
+                cv2.line(frame, (self.camera.middle + int(100*self.camera.middle/640), 720), (self.camera.middle + int(100*self.camera.middle/640), 0), (0, 255, 0), 3)
 
-            for result in results:
-                x1, x2, y1, y2 = result
-                cv2.rectangle(frame, (x1, y1), (x2, y2), (0, 0, 255), 3)
-                cv2.circle(frame,(int(x1 + (x2-x1)*0.5), 
-                                        int(y1 + (y2-y1)*0.5)), 5, (0,0,255), -1)
-                
-                org = [x1, y1]
-                distance = self.get_distance(y1, y2)
-                self.output.send(self.get_action(x1, x2, distance))
+                for result in results:
+                    x1, x2, y1, y2 = result
+                    cv2.rectangle(frame, (x1, y1), (x2, y2), (0, 0, 255), 3)
+                    cv2.circle(frame,(int(x1 + (x2-x1)*0.5), 
+                                            int(y1 + (y2-y1)*0.5)), 5, (0,0,255), -1)
+                    
+                    org = [x1, y1]
+                    distance = self.get_distance(y1, y2)
+                    self.output.send(self.get_action(x1, x2, distance))
 
-                cv2.putText(frame,
-                            f"D: {distance:.2f}m dmid: {int((x1 + (x2-x1)*0.5) - self.camera.middle)}",
-                            org, self.camera.font, self.camera.fontScale, self.camera.color, self.camera.thickness)
-
+                    cv2.putText(frame,
+                                f"D: {distance:.2f}m dmid: {int((x1 + (x2-x1)*0.5) - self.camera.middle)}",
+                                org, self.camera.font, self.camera.fontScale, self.camera.color, self.camera.thickness)
+            i+=1
             if frame is not None:
                 cv2.imshow("video0", frame)
             if cv2.waitKey(2) & 0xFF == ord('q'):
