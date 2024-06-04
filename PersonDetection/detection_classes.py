@@ -183,7 +183,7 @@ class algorithm:
                     
                     org = [x1, y1]
                     distance = self.get_distance(y1, y2)
-                    if i%30 == 0:
+                    if i%15 == 0:
                         self.output.send(self.get_action(x1, x2, distance))
 
                     cv2.putText(frame,
