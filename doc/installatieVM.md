@@ -22,6 +22,7 @@ Installatie wordt gedaan op een nieuwe linux, hier het geval op een VM in Virtua
         1. [Streamer opzetten](#611-streamer-opzetten)
         1. [MQTT subscriber aanzetten](#612-mqtt-subscriber-aanzetten)
         1. [Twister aanzetten](#613-twister-aanzetten)
+        1. [Nav aanzetten](#614-nav-aanzetten)
     1. [Lokale linux machine](#62-lokale-linux-machine)
 
 ## 1. Initiële settings VM
@@ -60,11 +61,38 @@ Het model in PersoDetection -> models
 
 ### 2.3 Installaties van nodige programma's
 
+Installeer opencv op deze manier en zorg dat gstreamer support aanstaat.
+
 ```
-pip3 install opencv-python
+OPENCV_VER="master"
+TMPDIR=$(mktemp -d)
+
+# Build and install OpenCV from source.
+cd "${TMPDIR}"
+git clone --branch ${OPENCV_VER} --depth 1 --recurse-submodules --shallow-submodules https://github.com/opencv/opencv-python.git opencv-python-${OPENCV_VER}
+cd opencv-python-${OPENCV_VER}
+export ENABLE_CONTRIB=0
+export ENABLE_HEADLESS=1
+# We want GStreamer support enabled.
+export CMAKE_ARGS="-DWITH_GSTREAMER=ON"
+python3 -m pip wheel . --verbose
+
+# Install OpenCV
+python3 -m pip install opencv_python*.whl
 ```
 
-We raden u aan om Tensorflow te gebruiken boven ultralytics, omdat dit de gstreamer automatisch kan uitzetten.  
+Andere installaties
+
+```
+sudo apt-get install h264enc
+```
+-> no configuration
+
+```
+sudo apt-get install --yes libgstreamer1.0-dev libgstreamer-plugins-base1.0-dev libgstreamer-plugins-bad1.0-dev gstreamer1.0-plugins-base gstreamer1.0-plugins-good gstreamer1.0-plugins-bad gstreamer1.0-plugins-ugly gstreamer1.0-libav gstreamer1.0-tools gstreamer1.0-x gstreamer1.0-alsa gstreamer1.0-gl gstreamer1.0-gtk3 gstreamer1.0-qt5 gstreamer1.0-pulseaudio
+```
+
+We raden u aan om Tensorflow te gebruiken boven ultralytics, omdat dit de gstreamer automatisch kan uitzetten. Bij het gebruik van Tensorflow, alle code in het python script wat over ultralytics gaat in comment zetten.    
 Als u wel graag Ultralytics wil gebruiken, weet dat u andere dingen moet aanpassen of eerst een snapshot kan maken van de VM om daarna te kunnen testen met de installatie van Ultralytics.
 
 ```
@@ -95,12 +123,47 @@ sudo apt update
 sudo apt upgrade
 sudo apt install ros-humble-ros-base
 sudo apt install ros-dev-tools
+sudo apt install ros-humble-rviz2
 ```
-
-Als je commando uitvoert wat iets te maken heeft met ROS2 altijd dit commando eerst uitvoeren:
+   
+Ros sourcen.
 
 ```
 source install/setup.bash
+source /opt/ros/humble/setup.bash
+```
+
+Installatie van libcap en libboost.
+
+```
+sudo apt install libcap-dev
+sudo apt-get install libboost-all-dev 
+```
+
+Installatie van lcm.
+
+```
+git clone https://github.com/lcm-proj/lcm.git
+lcm/ 
+ls 
+mkdir build 
+cd build/ 
+cmake .. 
+make 
+sudo make install 
+```
+
+Om te builden:
+
+```
+colcon build
+```
+
+Als je commando uitvoert wat iets te maken heeft met ROS2 altijd dit commando eerst uitvoeren om te sourcen:
+
+```
+source install/setup.bash
+source /opt/ros/humble/setup.bash
 ```
 
 ### 3.2 MQTT subscriber 
@@ -124,6 +187,8 @@ sudo apt install ros-humble-xacro
 ## 4 Verbinden met de robot
 
 Vooralleerst moet de lokale machine verbonden zijn met hetzelfde netwerk als de robot. Dit wil zeggen dat op de linux machine het ip adres moet aangepast worden naar 192.168.123.162/24. Voor de VM moet het netwerk type gewijzigd worden van NAT naar Bridged adapter, Naam naar de Ethernet adapter en Promiscuous-modus 'Alle toestaan'. Hierdoor verdwijnt de internettoegang op de VM, dus voor internettoegang terug veranderen naar NAT en vice versa.
+
+![alt text](image.png)
 
 ```
 sudo ip a add 192.168.123.162/24 dev enp46s0
@@ -283,16 +348,24 @@ gst-launch-1.0 udpsrc port=9201 ! application/x-rtp, media=video, encoding-name=
 
 ### 6.1 Robot
 
+Het beste in verschillende terminals doen om overzicht te behouden. Zoals gebruik van Terminator.
+
 #### 6.1.1 Streamer opzetten
 
 Eerst verbinden met de robot, [hier](#4-verbinden-met-de-robot) beschreven.
 
-Enkele processen moeten gekilled worden opdat de UnitreecameraSDK werkt.
+Enkele processen moeten gekilled worden opdat de UnitreecameraSDK werkt door:
 
 ```
 ps -aux | grep point_cloud_node | awk '{print $2}' | xargs kill -9
 ps -aux | grep mqttControlNode | awk '{print $2}' | xargs kill -9
 ps -aux | grep live_human_pose | awk '{print $2}' | xargs kill -9
+```
+
+of door:
+
+```
+./kill.sh
 ```
 
 Hierna kan de streamer aangezet worden door example_putImagestrans in de bins folder uit te voeren.
@@ -307,6 +380,7 @@ Zet de MQTT subscriber aan in de betreffende map src.
 
 ```
 source install/setup.bash
+source /opt/ros/humble/setup.bash
 cd mqtt
 ros2 run mqtt_ros mqtt_subscriber
 ```
@@ -314,7 +388,17 @@ ros2 run mqtt_ros mqtt_subscriber
 #### 6.1.3 Twister aanzetten
 
 ```
+source install/setup.bash
+source /opt/ros/humble/setup.bash
 ros2 run twister twister
+```
+
+#### 6.1.4 Nav aanzetten
+
+```
+source install/setup.bash
+source /opt/ros/humble/setup.bash
+ros2 launch unitree_nav control.launch.py
 ```
 
 ### 6.2 Lokale linux machine
