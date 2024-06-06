@@ -1,6 +1,6 @@
 import cv2
 import os
-from ultralytics import YOLO
+# from ultralytics import YOLO
 import math
 import numpy as np
 import paho.mqtt.client as mqtt
@@ -23,10 +23,6 @@ class output_mqtt(output):
         self.client.connect("localhost",1883,60)        
 
     def send(self, action):
-        # client = self.connect_mqtt()
-        # client.loop_start()
-        # self.publish(client, action)
-        # client.loop_stop()
         self.client.publish("test/topic", action)
     
 
@@ -69,29 +65,52 @@ class model_tensorflow(model):
                 if score > 0.25 and classId == 1:
                     results.append([x1, x2, y1, y2])
         return results
-   
-class model_ultralytics(model):
-    def __init__(self):
-        self.model_ultralytics = YOLO('yolov8n.pt')
-        self.classNames = self.model_ultralytics.names
-
-    def detect_objects(self, frame):
-        return self.model_ultralytics.predict(frame, stream=True, verbose=False)
     
-    def get_results(self, frame):
+    def get_closest_result(self, frame):
         objects = self.detect_objects(frame)
-        results = []
-        for r in objects:
-            boxes = r.boxes
-            for box in boxes:
-                x1, y1, x2, y2 = box.xyxy[0]
-                x1, y1, x2, y2 = int(x1), int(y1), int(x2), int(y2)
-                confidence = math.ceil((box.conf[0] * 100)) / 100
-                cls = int(box.cls[0])
+        rows, cols, _ = frame.shape
+        result = []
+        distance = 100
+        for i in range(objects.shape[2]):
+                selected = objects[0, 0, i]
+        
+                classId = int(selected[1])
+                score = float(selected[2])
 
-                if confidence >= 0.3 and cls == 0:
-                    results.append([x1, x2, y1, y2])
-        return results
+                x1 = int(selected[3] * cols)
+                y1 = int(selected[4] * rows)
+                w = int(selected[5] * cols - x1)
+                h = int(selected[6] * rows - y1)
+                x2 = x1 + w
+                y2 = y1 + h
+                if score > 0.25 and classId == 1:
+                    if algorithm.get_distance(self, y1, y2) < distance:
+                        distance = algorithm.get_distance(self, y1, y2)
+                        result = [[x1, x2, y1, y2]]
+        return result
+   
+# class model_ultralytics(model):
+#     def __init__(self):
+#         self.model_ultralytics = YOLO('yolov8n.pt')
+#         self.classNames = self.model_ultralytics.names
+
+#     def detect_objects(self, frame):
+#         return self.model_ultralytics.predict(frame, stream=True, verbose=False)
+    
+#     def get_results(self, frame):
+#         objects = self.detect_objects(frame)
+#         results = []
+#         for r in objects:
+#             boxes = r.boxes
+#             for box in boxes:
+#                 x1, y1, x2, y2 = box.xyxy[0]
+#                 x1, y1, x2, y2 = int(x1), int(y1), int(x2), int(y2)
+#                 confidence = math.ceil((box.conf[0] * 100)) / 100
+#                 cls = int(box.cls[0])
+
+#                 if confidence >= 0.3 and cls == 0:
+#                     results.append([x1, x2, y1, y2])
+#         return results
    
 
 class camera:
@@ -171,7 +190,7 @@ class algorithm:
         while True:
             if i%5 == 0:
                 frame = self.camera.get_frame()
-                results = self.model.get_results(frame)
+                results = self.model.get_closest_result(frame)
                 cv2.line(frame, (self.camera.middle -int(100*self.camera.middle/640), 720), (self.camera.middle -int(100*self.camera.middle/640), 0), (0, 255, 0), 3)
                 cv2.line(frame, (self.camera.middle + int(100*self.camera.middle/640), 720), (self.camera.middle + int(100*self.camera.middle/640), 0), (0, 255, 0), 3)
 
@@ -183,7 +202,7 @@ class algorithm:
                     
                     org = [x1, y1]
                     distance = self.get_distance(y1, y2)
-                    if i%15 == 0:
+                    if i%10 == 0:
                         self.output.send(self.get_action(x1, x2, distance))
 
                     cv2.putText(frame,
